@@ -1,0 +1,132 @@
+@media print {
+  /** Setting margins */
+  @page {
+    margin: 2cm; }
+  /* Or: */
+  @page :left {
+    margin: 1cm; }
+  @page :right {
+    margin: 1cm; }
+  .print-beak-page {
+    page-break-after: always; }
+  /* The first page of a print can be manipulated as well */
+  #mind-test {
+    padding: 1.5rem;
+    padding-top: 2.5rem; }
+    #mind-test p {
+      font-size: 0.75rem;
+      line-height: 1.75; }
+    #mind-test .color-main {
+      color: #000 !important; }
+    #mind-test .content-box-blue {
+      border: 2px solid #000;
+      background-color: #fff; }
+    #mind-test .tab-pane.fade {
+      display: block !important;
+      opacity: 1 !important; }
+    #mind-test .heading-for-print {
+      display: block !important;
+      margin-top: 2cm;
+      margin-bottom: 0.5rem;
+      padding-top: 1cm;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #000; }
+    #mind-test .banner {
+      position: relative;
+      width: 100%;
+      height: auto; }
+      #mind-test .banner .heading {
+        margin-bottom: 0.5rem;
+        padding-top: 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #000; }
+        #mind-test .banner .heading .title-lg {
+          margin-right: 0.5rem;
+          display: inline-block;
+          font-size: 2rem;
+          color: #95ffd1; }
+        #mind-test .banner .heading .title-md {
+          display: inline-block;
+          font-size: 2rem;
+          color: #fff; }
+        #mind-test .banner .heading ul.tab-menu li {
+          display: none; }
+        #mind-test .banner .heading ul.tab-menu li:first-child {
+          display: block !important; }
+    #mind-test #mt-score-result {
+      margin-top: 16px;
+      margin-bottom: 1.5rem; }
+      #mind-test #mt-score-result .col-sm-3 {
+        float: left;
+        width: calc(100% / 4); }
+      #mind-test #mt-score-result .mt-score-result-item {
+        padding: 0.5rem 0;
+        text-align: center;
+        border: 1px solid #000;
+        border-radius: 6px;
+        -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
+        #mind-test #mt-score-result .mt-score-result-item .heading-title {
+          margin-bottom: 0.5rem;
+          color: #2f2f2f;
+          font-weight: bold;
+          font-size: 0.875rem; }
+        #mind-test #mt-score-result .mt-score-result-item .data-group {
+          color: #fff; }
+          #mind-test #mt-score-result .mt-score-result-item .data-group .data-title {
+            font-size: 0.875rem;
+            font-weight: bold; }
+          #mind-test #mt-score-result .mt-score-result-item .data-group .data-content {
+            font-size: 1rem;
+            font-weight: bold; }
+          #mind-test #mt-score-result .mt-score-result-item .data-group.data-group-disabled {
+            opacity: 0.65; }
+        #mind-test #mt-score-result .mt-score-result-item.color-blue {
+          background-color: #fff; }
+        #mind-test #mt-score-result .mt-score-result-item.color-blue-green {
+          background-color: #fff; }
+        #mind-test #mt-score-result .mt-score-result-item.color-yellow {
+          background-color: #fff; }
+        #mind-test #mt-score-result .mt-score-result-item.color-green {
+          background-color: #fff; }
+    #mind-test #mt-intro-table {
+      background-color: #fff;
+      border-radius: 0;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      overflow: hidden;
+      vertical-align: middle;
+      border: 2px solid #000; }
+      #mind-test #mt-intro-table th {
+        text-align: center;
+        font-weight: normal;
+        border-width: 1px;
+        color: #fff;
+        background-color: #000;
+        width: 110px;
+        font-size: 1.75rem; }
+      #mind-test #mt-intro-table th, #mind-test #mt-intro-table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+        border: 1px solid #000;
+        font-size: 0.75rem;
+        line-height: 1.75; }
+    #mind-test #mt-description {
+      padding: 0; }
+      #mind-test #mt-description h3.title.color-main.fw-b {
+        display: none; }
+      #mind-test #mt-description .content {
+        font-size: 0.75rem;
+        line-height: 1.75; }
+    #mind-test #mt-career {
+      padding: 0.5rem !important; }
+      #mind-test #mt-career > ul > li > span {
+        font-size: 0.75rem;
+        font-weight: bold; }
+      #mind-test #mt-career li.clearfix.mg-top-8 > span {
+        display: inline-block;
+        float: left; }
+      #mind-test #mt-career .career-list {
+        font-size: 0.75rem; }
+    #mind-test .pagination {
+      display: none; } }
