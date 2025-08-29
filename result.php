@@ -332,11 +332,284 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 margin-top: 5px;
             }
         }
+        /* PDF 儲存按鈕 */
+        .pdf-save-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pdf-save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(231, 76, 60, 0.4);
+        }
+        .pdf-save-btn:active {
+            transform: translateY(0);
+        }
+        .pdf-icon {
+            font-size: 18px;
+        }
+
         @media print {
-            .report-body { background: white; }
-            .tab-btn { display: none; }
-            .tab-content { display: block !important; page-break-before: always; }
-            .tab-content:first-child { page-break-before: avoid; }
+            @page {
+                size: A4 portrait;
+                margin: 0.5in 0.4in;
+                @top-left { content: none; }
+                @top-center { content: none; }
+                @top-right { content: none; }
+                @bottom-left { content: none; }
+                @bottom-center { content: none; }
+                @bottom-right { content: none; }
+            }
+            
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                font-size: 13px !important;
+                line-height: 1.3 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif !important;
+            }
+            
+            /* 移除瀏覽器預設的頁首頁尾 */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            /* 確保沒有頁首頁尾內容 */
+            @page :first {
+                margin-top: 0.5in;
+            }
+            
+            .report-body { 
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                padding: 15px !important;
+                margin: 0 !important;
+                min-height: auto !important;
+            }
+            
+            .report-container {
+                max-width: none !important;
+                margin: 0 auto !important;
+                padding: 20px !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+                border-radius: 15px !important;
+                background: white !important;
+            }
+            
+            /* 隱藏不必要元素 */
+            .pdf-save-btn { display: none !important; }
+            
+            /* 只顯示活動的 tab 內容 */
+            .tab-content { 
+                display: none !important;
+            }
+            .tab-content.active { 
+                display: block !important;
+            }
+            
+            /* 適合直向的標題格式 */
+            .report-header {
+                text-align: center !important;
+                margin-bottom: 20px !important;
+                padding-bottom: 15px !important;
+                border-bottom: 2px solid #e1e5e9 !important;
+            }
+            .report-title {
+                font-size: 1.5rem !important;
+                color: #2c3e50 !important;
+                margin-bottom: 8px !important;
+                font-weight: bold !important;
+            }
+            
+            /* 在 PDF 中顯示性格類型 */
+            .personality-tabs {
+                display: block !important;
+                text-align: center !important;
+                margin-bottom: 15px !important;
+            }
+            .tab-btn {
+                display: inline-block !important;
+                padding: 8px 16px !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 20px !important;
+                font-weight: bold !important;
+                font-size: 1rem !important;
+                margin: 0 !important;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+            }
+            .tab-btn:not(.active) {
+                display: none !important;
+            }
+            
+            /* 適合直向的分數區塊格式 */
+            .score-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 12px !important;
+                margin: 20px auto !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .score-item {
+                text-align: center !important;
+                padding: 15px 8px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+                transition: none !important;
+                position: relative !important;
+                min-height: 100px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+            }
+            .score-item h4 {
+                font-size: 0.85rem !important;
+                margin-bottom: 6px !important;
+                font-weight: bold !important;
+                line-height: 1.1 !important;
+            }
+            .score-item .score {
+                font-size: 1.8rem !important;
+                font-weight: bold !important;
+                margin-top: 6px !important;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+                line-height: 1 !important;
+            }
+            
+            /* 維持原有顏色漸層 */
+            .score-item.color-blue { 
+                background: linear-gradient(135deg, #3498db, #2980b9) !important; 
+                color: white !important;
+            }
+            .score-item.color-green { 
+                background: linear-gradient(135deg, #2ecc71, #27ae60) !important; 
+                color: white !important;
+            }
+            .score-item.color-orange { 
+                background: linear-gradient(135deg, #f39c12, #e67e22) !important; 
+                color: white !important;
+            }
+            .score-item.color-purple { 
+                background: linear-gradient(135deg, #9b59b6, #8e44ad) !important; 
+                color: white !important;
+            }
+            
+            /* 適合直向的分隔線格式 */
+            .score-divider {
+                width: 80% !important;
+                height: 2px !important;
+                background: linear-gradient(to right, transparent, #bdc3c7, transparent) !important;
+                margin: 15px auto !important;
+                position: relative !important;
+            }
+            .score-divider::before {
+                content: '' !important;
+                position: absolute !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                width: 8px !important;
+                height: 8px !important;
+                background: #667eea !important;
+                border-radius: 50% !important;
+            }
+            
+            /* 適合直向的表格格式 */
+            .info-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin: 15px 0 !important;
+                font-size: 0.8rem !important;
+                line-height: 1.3 !important;
+            }
+            .info-table th {
+                background: #34495e !important;
+                color: white !important;
+                padding: 8px !important;
+                text-align: left !important;
+                width: 100px !important;
+                font-size: 0.85rem !important;
+            }
+            .info-table td {
+                padding: 10px !important;
+                border-bottom: 1px solid #ecf0f1 !important;
+                font-size: 0.75rem !important;
+                line-height: 1.4 !important;
+                vertical-align: top !important;
+            }
+            
+            /* 適合直向的職業建議區塊格式 */
+            .career-section {
+                background: #e8f4fd !important;
+                padding: 12px !important;
+                border-radius: 8px !important;
+                border-left: 4px solid #3498db !important;
+                margin: 15px 0 !important;
+                font-size: 0.8rem !important;
+                line-height: 1.4 !important;
+            }
+            .career-list {
+                color: #2980b9 !important;
+                font-weight: bold !important;
+                font-size: 0.8rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            /* 適合直向的詳細說明區塊格式 */
+            div[style*="margin: 30px 0"] {
+                margin: 15px 0 !important;
+            }
+            div[style*="padding: 20px"] {
+                padding: 12px !important;
+            }
+            div[style*="background: #f8f9fa"] {
+                background: #f8f9fa !important;
+                padding: 12px !important;
+                border-radius: 6px !important;
+                font-size: 0.75rem !important;
+                line-height: 1.4 !important;
+            }
+            h3 {
+                color: #2c3e50 !important;
+                margin-bottom: 8px !important;
+                font-size: 1rem !important;
+                font-weight: bold !important;
+            }
+            
+            /* 防止分頁 */
+            .score-grid,
+            .info-table,
+            .career-section {
+                page-break-inside: avoid !important;
+            }
+            
+            /* 確保直向內容適合頁面 */
+            .tab-content.active {
+                transform: scale(0.9) !important;
+                transform-origin: top center !important;
+                width: 111% !important;
+                margin-left: -5.5% !important;
+            }
         }
     </style>
 </head>
@@ -426,6 +699,12 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
         <?php endforeach; ?>
     </div>
 
+    <!-- PDF 儲存按鈕 -->
+    <button class="pdf-save-btn" onclick="savePDF()" title="儲存為PDF">
+        <span class="pdf-icon">📄</span>
+        儲存PDF
+    </button>
+
     <script>
         function showTab(index) {
             // 隱藏所有tab內容
@@ -443,9 +722,139 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             document.querySelectorAll('.tab-btn')[index].classList.add('active');
         }
 
-        // 打印功能
+        // PDF 儲存功能
+        let isPrintingInProgress = false;
+        
+        function savePDF() {
+            // 防止重複點擊
+            if (isPrintingInProgress) {
+                return;
+            }
+            
+            isPrintingInProgress = true;
+            
+            // 獲取當前活動的 tab
+            const activeTab = document.querySelector('.tab-content.active');
+            const allTabs = document.querySelectorAll('.tab-content');
+            const personalityTabs = document.querySelector('.personality-tabs');
+            const pdfBtn = document.querySelector('.pdf-save-btn');
+            
+            if (!activeTab) {
+                isPrintingInProgress = false;
+                return;
+            }
+            
+            // 備份原始顯示狀態
+            const originalStates = {
+                tabs: [],
+                personalityTabsDisplay: personalityTabs ? personalityTabs.style.display : '',
+                btnText: pdfBtn ? pdfBtn.innerHTML : ''
+            };
+            
+            allTabs.forEach((tab, index) => {
+                originalStates.tabs[index] = {
+                    display: tab.style.display,
+                    visibility: tab.style.visibility
+                };
+            });
+            
+            // 更新按鈕狀態
+            if (pdfBtn) {
+                pdfBtn.innerHTML = '<span class="pdf-icon">⏳</span>準備中...';
+                pdfBtn.style.pointerEvents = 'none';
+            }
+            
+            // 隱藏所有非活動的 tab
+            allTabs.forEach(tab => {
+                if (tab !== activeTab) {
+                    tab.style.display = 'none';
+                    tab.style.visibility = 'hidden';
+                }
+            });
+            
+            // 在 PDF 中保留性格類型標籤顯示
+            if (personalityTabs) {
+                personalityTabs.style.display = 'block';
+            }
+            
+            // 設定頁面標題
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            let fileName = '人格分析報告';
+            if (activeTabBtn) {
+                const userName = activeTabBtn.textContent.match(/\[(.*?)\]/);
+                if (userName) {
+                    fileName = `${userName[1]}_人格分析報告`;
+                }
+            }
+            
+            // 儲存原始標題並設定新標題
+            const originalTitle = document.title;
+            document.title = fileName;
+            
+            // 恢復狀態的函數
+            function restoreOriginalState() {
+                // 恢復所有 tab 狀態
+                allTabs.forEach((tab, index) => {
+                    if (originalStates.tabs[index]) {
+                        tab.style.display = originalStates.tabs[index].display;
+                        tab.style.visibility = originalStates.tabs[index].visibility;
+                    }
+                });
+                
+                // 恢復 tab 切換按鈕
+                if (personalityTabs) {
+                    personalityTabs.style.display = originalStates.personalityTabsDisplay;
+                }
+                
+                // 恢復按鈕狀態
+                if (pdfBtn) {
+                    pdfBtn.innerHTML = originalStates.btnText;
+                    pdfBtn.style.pointerEvents = '';
+                }
+                
+                // 恢復頁面標題
+                document.title = originalTitle;
+                
+                // 重置狀態
+                isPrintingInProgress = false;
+            }
+            
+            // 延遲執行打印，確保布局完成
+            setTimeout(() => {
+                try {
+                    window.print();
+                } catch (error) {
+                    console.log('Print dialog error:', error);
+                }
+                
+                // 無論打印成功或失敗，都要恢復狀態
+                setTimeout(restoreOriginalState, 1000);
+            }, 200);
+            
+            // 監聽打印對話框關閉事件（備用恢復機制）
+            const mediaQueryList = window.matchMedia('print');
+            const printHandler = (mql) => {
+                if (!mql.matches) {
+                    // 打印對話框已關閉
+                    setTimeout(() => {
+                        if (isPrintingInProgress) {
+                            restoreOriginalState();
+                        }
+                    }, 500);
+                    mediaQueryList.removeListener(printHandler);
+                }
+            };
+            
+            if (mediaQueryList.addListener) {
+                mediaQueryList.addListener(printHandler);
+            } else if (mediaQueryList.addEventListener) {
+                mediaQueryList.addEventListener('change', printHandler);
+            }
+        }
+
+        // 打印功能（保留原有功能）
         function printReport() {
-            window.print();
+            savePDF();
         }
 
         // 添加鍵盤快捷鍵
