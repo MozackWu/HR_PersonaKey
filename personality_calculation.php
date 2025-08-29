@@ -1,486 +1,483 @@
 <?php
 	session_start();
+	error_reporting(E_ALL);
+	ini_set('display_errors','On');
 
 	// 保存使用者的回答
 	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		foreach ($_POST as $question_key => $answer) {
-			$question_id = str_replace('radiobutton1_', '', $question_key);
-			$_SESSION['answers'][$question_id] = $answer;
+			if (strpos($question_key, 'radiobutton1_') === 0) {
+				$_SESSION['answers'][$question_key] = $answer;
+			}
 		}
 	}
 
-	error_reporting(E_ALL);
-	ini_set('display_errors','On');
-?>
-
-
-<link rel="stylesheet" type="text/css" href="chart/css/style.css">
-<script src="chart/js/Chart.min.js"></script>
-<script src="chart/js/utils.js"></script>
-
-<script LANGUAGE="JavaScript">
-	function CheckInput() 
-	{
-		form1.submit();
-	}
-
-</script>
-
-
-
-<html>
-<head>
-	<title>人格分析問卷</title>
-</head>
-
-<body>
-
-	<!-- 設定網頁編碼為UTF-8 -->
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<!-- 設定手機的視覺大小 -->
-	<meta name="viewport" content="width=600, initial-scale=1.0">
-
-<?php
+	// 處理測驗結果計算
 	date_default_timezone_set('Asia/Taipei');
 	include("config/function_class.inc.php");
 	require("config/mysql_connect.inc.php");
 	
-	// echo Verify_LoginToken($_SESSION['Verify_Token']);
+	$Name = '';
+	$ID = '';
+	$AnswerE = $AnswerI = $AnswerS = $AnswerN = $AnswerT = $AnswerF = $AnswerJ = $AnswerP = 0;
+	$Answer1 = $Answer2 = $Answer3 = $Answer4 = '';
+	$Note = '';
+	
 	if(!empty($_SESSION['Token']) && !empty($_SESSION['Time']))
 	{
 		if(Verify_LoginToken($_SESSION['Token'],$_SESSION['Time']))
 		{
 			$SecurityCode = GetSecurCode($_SESSION['Token'],$_SESSION['Time']);
-			// echo '<script>alert("'.$SecurityCode.'")</script>'; 
 			
 			// 初始化結果計數
 			$results = [
-				'E' => 0,
-				'I' => 0,
-				'S' => 0,
-				'N' => 0,
-				'F' => 0,
-				'T' => 0,
-				'J' => 0,
-				'P' => 0
+				'E' => 0, 'I' => 0, 'S' => 0, 'N' => 0,
+				'F' => 0, 'T' => 0, 'J' => 0, 'P' => 0
 			];
 			
-
-			//結果字串
-			$AnswerStr="";
+			$AnswerStr = "";
 			
-			
-			foreach ($_SESSION['answers'] as $question_id  => $answer) {
-				// $question_id = str_replace('radiobutton1_', '', $question_key);
-				// $sql = 'SELECT * FROM `analysis_question` WHERE `UID` = ' . $question_id . ';';
-				$sql = ("SELECT * FROM `analysis_question` WHERE `UID` = '" . mysqli_real_escape_string($link,$question_id) . "' LIMIT 1;");
-				// echo $sql . "<br>";
+			// 計算結果
+			foreach ($_SESSION['answers'] as $question_key => $answer) {
+				// 從 radiobutton1_xxx 取得實際的問題ID
+				$question_id = str_replace('radiobutton1_', '', $question_key);
+				$sql = "SELECT * FROM `analysis_question` WHERE `UID` = '" . mysqli_real_escape_string($link,$question_id) . "' LIMIT 1;";
 				$result = mysqli_query($link,$sql);
-				// $result = mysqli_query($link,$query);
-
 				
 				if ($result->num_rows > 0) {
 					$question = $result->fetch_assoc();
 					if ($answer == 'A') {
 						$results[$question['RESULT_A']]++;
-						$AnswerStr=$AnswerStr . $question_id . ":" . $question['RESULT_A'] . ",";
-						// echo '$question["RESULT_A"]：' . $question['RESULT_A'] . "<br>";
-						// echo '$results[$question["RESULT_A"]]：' . $results[$question['RESULT_A']] . "<br>";
+						$AnswerStr .= $question_id . ":" . $question['RESULT_A'] . ",";
 					} else {
 						$results[$question['RESULT_B']]++;
-						$AnswerStr=$AnswerStr . $question_id . ":" . $question['RESULT_B'] . ",";
-						// echo '$question["RESULT_B"]：' . $question['RESULT_B'] . "<br>";
-						// echo '$results[$question["RESULT_B"]]：' . $results[$question['RESULT_B']] . "<br>";
+						$AnswerStr .= $question_id . ":" . $question['RESULT_B'] . ",";
 					}
 				}
 			}
-			//刪除最後一個字元
-			$AnswerStr = substr($AnswerStr,0,-1);
 			
-			//各數值
-			$AnswerE=0;$AnswerI=0;$AnswerS=0;$AnswerN=0;$AnswerT=0;$AnswerF=0;$AnswerJ=0;$AnswerP=0;
-			//最後結果
-			$Answer1="";$Answer2="";$Answer3="";$Answer4="";
+			$AnswerStr = rtrim($AnswerStr, ',');
 			
-			$AnswerE=$results['E'];
-			// echo "$AnswerE：" . $AnswerE;
-			$AnswerI=$results['I'];
-			// echo "$AnswerI：" . $AnswerI;
-			$AnswerS=$results['S'];
-			// echo "$AnswerS：" . $AnswerS;
-			$AnswerN=$results['N'];
-			// echo "$AnswerN：" . $AnswerN;
-			$AnswerT=$results['T'];
-			// echo "$AnswerT：" . $AnswerT;
-			$AnswerF=$results['F'];
-			// echo "$AnswerF：" . $AnswerF;
-			$AnswerJ=$results['J'];
-			// echo "$AnswerJ：" . $AnswerJ;
-			$AnswerP=$results['P'];
-			// echo "$AnswerP：" . $AnswerP;
+			// 提取各數值
+			$AnswerE = $results['E']; $AnswerI = $results['I'];
+			$AnswerS = $results['S']; $AnswerN = $results['N'];
+			$AnswerT = $results['T']; $AnswerF = $results['F'];
+			$AnswerJ = $results['J']; $AnswerP = $results['P'];
 			
-			//刪除最後一個字元
-			// $AnswerStr = substr($AnswerStr,0,-1);
+			// 產生人格類型說明
+			$Answer1 = ($AnswerE > $AnswerI) ? '<font color="#E74C3C">E</font>' : 
+					  (($AnswerE == $AnswerI) ? '<font color="#E74C3C">E</font><br><font color="#9B59B6">I</font>' : '<font color="#9B59B6">I</font>');
 			
-			//產生備註
+			$Answer2 = ($AnswerS > $AnswerN) ? '<font color="#3498DB">S</font>' : 
+					  (($AnswerS == $AnswerN) ? '<font color="#3498DB">S</font><br><font color="#48C9B0">N</font>' : '<font color="#48C9B0">N</font>');
+			
+			$Answer3 = ($AnswerT > $AnswerF) ? '<font color="#D4AC0D">T</font>' : 
+					  (($AnswerT == $AnswerF) ? '<font color="#D4AC0D">T</font><br><font color="#DC7633">F</font>' : '<font color="#DC7633">F</font>');
+			
+			$Answer4 = ($AnswerJ > $AnswerP) ? '<font color="#566573">J</font>' : 
+					  (($AnswerJ == $AnswerP) ? '<font color="#566573">J</font><br><font color="#154360">P</font>' : '<font color="#154360">P</font>');
+			
+			// 產生註記
 			$Note = "";
-		
-			//第一象限
-			if($AnswerE > $AnswerI)
-			{
-				$Answer1='<font color="#E74C3C">E</font>';
-				$Note = $Note . "E";
-			}
-			else if($AnswerE == $AnswerI)
-			{
-				$Answer1='<font color="#E74C3C">E</font><br><font color="#9B59B6">I</font>';
-				$Note = $Note . "(E,I)";
-			}
-			else
-			{
-				$Answer1='<font color="#9B59B6">I</font>';
-				$Note = $Note . "I";
-			}
+			$Note .= ($AnswerE > $AnswerI) ? "E" : (($AnswerE == $AnswerI) ? "(E,I)" : "I");
+			$Note .= ($AnswerS > $AnswerN) ? "-S" : (($AnswerS == $AnswerN) ? "-(S,N)" : "-N");
+			$Note .= ($AnswerT > $AnswerF) ? "-T" : (($AnswerT == $AnswerF) ? "-(T,F)" : "-F");
+			$Note .= ($AnswerJ > $AnswerP) ? "-J" : (($AnswerJ == $AnswerP) ? "-(J,P)" : "-P");
 			
-			//第二象限
-			if($AnswerS > $AnswerN)
-			{
-				$Answer2='<font color="#3498DB">S</font>';
-				$Note = $Note . "-S";
-			}
-			else if($AnswerS == $AnswerN)
-			{
-				$Answer2='<font color="#3498DB">S</font><br><font color="#48C9B0">N</font>';
-				$Note = $Note . "-(S,N)";
-			}
-			else
-			{
-				$Note = $Note . "-N";
-				$Answer2='<font color="#48C9B0">N</font>';
-			}
+			// 儲存資料
+			$ID = $_SESSION['ID'] ?? '';
+			$Name = $_SESSION['Name'] ?? '';
 			
-			//第三象限
-			if($AnswerT > $AnswerF)
-			{
-				$Answer3='<font color="#D4AC0D">T</font>';
-				$Note = $Note . "-T";
-			}
-			else if($AnswerT == $AnswerF)
-			{
-				$Answer3='<font color="#D4AC0D">T</font><br><font color="#DC7633">F</font>';
-				$Note = $Note . "-(T,F)";
-			}
-			else
-			{
-				$Answer3='<font color="#DC7633">F</font>';
-				$Note = $Note . "-F";
-			}
-			
-			//第四象限
-			if($AnswerJ > $AnswerP)
-			{
-				$Answer4='<font color="#566573">J</font>';
-				$Note = $Note . "-J";
-			}
-			else if($AnswerJ == $AnswerP)
-			{
-				$Answer4='<font color="#566573">J</font><br><font color="#154360">P</font>';
-				$Note = $Note . "-(J,P)";
-			}
-			else
-			{
-				$Answer4='<font color="#154360">P</font>';
-				$Note = $Note . "-P";
-			}
-			
-			//儲存身份帳字號
-			$ID = "";
-			if(isset($_SESSION['ID'])) $ID = $_SESSION['ID'];
-			
-			//儲存姓名
-			$Name = "";
-			if(isset($_SESSION['Name'])) $Name = $_SESSION['Name'];
-			
-			//寫入資料庫
-			$query = "INSERT INTO `personalit_analysis` (`UID`,`COMP`, `ID`, `NAME`, `E`, `I`, `S`, `N`, `T`, `F`, `J`, `P`, `RESULT`, `NOTE`) VALUES (NULL, '".mysqli_real_escape_string($link,$SecurityCode)."', '".mysqli_real_escape_string($link,$ID)."', '".mysqli_real_escape_string($link,$Name)."', '".mysqli_real_escape_string($link,$AnswerE)."', '".mysqli_real_escape_string($link,$AnswerI)."', '".mysqli_real_escape_string($link,$AnswerS)."', '".mysqli_real_escape_string($link,$AnswerN)."', '".mysqli_real_escape_string($link,$AnswerT)."', '".mysqli_real_escape_string($link,$AnswerF)."', '".mysqli_real_escape_string($link,$AnswerJ)."', '".mysqli_real_escape_string($link,$AnswerP)."', '".mysqli_real_escape_string($link,$AnswerStr)."', '".mysqli_real_escape_string($link,$Note)."');";
+			// 寫入資料庫
+			$query = "INSERT INTO `personalit_analysis` (`UID`,`COMP`, `ID`, `NAME`, `E`, `I`, `S`, `N`, `T`, `F`, `J`, `P`, `RESULT`, `NOTE`) VALUES (NULL, '" . mysqli_real_escape_string($link,$SecurityCode) . "', '" . mysqli_real_escape_string($link,$ID) . "', '" . mysqli_real_escape_string($link,$Name) . "', '" . mysqli_real_escape_string($link,$AnswerE) . "', '" . mysqli_real_escape_string($link,$AnswerI) . "', '" . mysqli_real_escape_string($link,$AnswerS) . "', '" . mysqli_real_escape_string($link,$AnswerN) . "', '" . mysqli_real_escape_string($link,$AnswerT) . "', '" . mysqli_real_escape_string($link,$AnswerF) . "', '" . mysqli_real_escape_string($link,$AnswerJ) . "', '" . mysqli_real_escape_string($link,$AnswerP) . "', '" . mysqli_real_escape_string($link,$AnswerStr) . "', '" . mysqli_real_escape_string($link,$Note) . "');";
 
 			if (mysqli_query($link, $query) === false) {
 				printf("Error: %s\n", mysqli_sqlstate($link));
 			}
-			/* close connection */
 			mysqli_close($link);		
 			
-			if(isset($_SESSION['Token']))
-				setcookie("Token"		,"",time()-3600);
-			
-			if(isset($_SESSION['ID']))
-				setcookie("ID"			,"",time()-3600);
-			
-			if(isset($_SESSION['Name']))
-				setcookie("Name"		,"",time()-3600);
-			
-			if(isset($_SESSION['Time']))
-				setcookie("Time"		,"",time()-3600);
-			
-			// 清除Session
+			// 清除Session cookies
+			$cookiesToClear = ['Token', 'ID', 'Name', 'Time'];
+			foreach ($cookiesToClear as $cookie) {
+				if (isset($_SESSION[$cookie])) {
+					setcookie($cookie, "", time()-3600);
+				}
+			}
 			session_destroy();
-			?>
-			<!-- HTML -->
-			<body>
-				<table width="100%" height="auto">
-					<tr>
-						<td align="center" valign="top">
-							<font color="#154360"><big><b>總結</b></big></font>
-							<p><hr size="1px" align="center" width="80%">
-							<table width="400" style="line-height:40px;" border='0'>
-								<?php
-								//顯示姓名和身份證號
-								echo '<tr>
-										<td align="center" valign="center"><big><font color="#1A5276">'.$Name.'</font></big></td>
-										<td align="center" valign="center"><big><font color="#1A5276">'.replace_symbol_text($ID,'＊',3,2).'</font></big></td>
-									</tr>';						
-								?>
-							</table>
-							<table width="400" style="line-height:15px;" border='0'>
-								<?php
-								$strE="";$strI="";$strS="";$strN="";$strT="";$strF="";$strJ="";$strP="";
-								
-								// cal AnserE
-								for($i=1;$i<=$AnswerE;$i++) 
-									$strE=$strE . '▃<br>';
-								
-								// cal AnserI
-								for($i=1;$i<=$AnswerI;$i++) 
-									$strI=$strI . '▃<br>';
-								
-								// cal AnserS
-								for($i=1;$i<=$AnswerS;$i++) 
-									$strS=$strS . '▃<br>';
-								
-								// cal AnserN
-								for($i=1;$i<=$AnswerN;$i++) 
-									$strN=$strN . '▃<br>';
-								
-								// cal AnserT
-								for($i=1;$i<=$AnswerT;$i++) 
-									$strT=$strT . '▃<br>';
-								
-								// cal AnserF
-								for($i=1;$i<=$AnswerF;$i++) 
-									$strF=$strF . '▃<br>';
-								
-								// cal AnserJ
-								for($i=1;$i<=$AnswerJ;$i++) 
-									$strJ=$strJ . '▃<br>';
-								
-								// cal AnserP
-								for($i=1;$i<=$AnswerP;$i++) 
-									$strP=$strP . '▃<br>';
-								
-								//顯示圖表
-								{
-									echo '<br>';
-									//顯示量圖
-									echo '<tr><td colspan="8" align="center"><div class="chart-wapper" style="width:450px;height:400px;"><canvas id="chart-0" width="400" height="350"></canvas></div></td></tr>';
-									// echo '<tr>
-										// <td align="center" valign="top"><font color="#E74C3C">
-											// '.$AnswerE.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#9B59B6">
-											// '.$AnswerI.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#3498DB">
-											// '.$AnswerS.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#48C9B0">
-											// '.$AnswerN.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#D4AC0D">
-											// '.$AnswerT.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#DC7633">
-											// '.$AnswerF.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#566573">
-											// '.$AnswerJ.'
-										// </font></td>
-										// <td align="center" valign="top"><font color="#154360">
-											// '.$AnswerP.'
-										// </font></td>
-									// </tr>';
-									// echo '<tr><td colspan="8" align="center"><hr size="1px" align="center" width="100%"></td></tr>';
-									// 顯示分量表
-									// echo 
-										// '<tr>
-											// <td align="center" valign="top"><font color="#E74C3C">
-												// '. $strE .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#9B59B6">
-												// '. $strI .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#3498DB">
-												// '. $strS .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#48C9B0">
-												// '. $strN .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#D4AC0D">
-												// '. $strT .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#DC7633">
-												// '. $strF .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#566573">
-												// '. $strJ .'
-											// </font></td>
-											// <td align="center" valign="top"><font color="#154360">
-												// '. $strP .'
-											// </font></td>
-										// </tr>';
-									echo '<tr><td colspan="8" align="center"><hr size="1px" align="center" width="100%"></td></tr>';
-								}
-								?>
-								</table>
-								<table width="400" style="line-height:40px;" border='0'>
-								<?php
-									//顯示人格特碼
-									// echo '<tr>
-											// <td colspan="2" align="center" valign="center"><big><big><b>'.$Answer1.'</b></big></big></td>
-											// <td colspan="2" align="center" valign="center"><big><big><b>'.$Answer2.'</b></big></big></td>
-											// <td colspan="2" align="center" valign="center"><big><big><b>'.$Answer3.'</b></big></big></td>
-											// <td colspan="2" align="center" valign="center"><big><big><b>'.$Answer4.'</b></big></big></td>
-										// </tr>';
-									
-								?>
-								</table>
-								<form id="form1" name="form1" method="post" action="connect.php">
-									<table width="400" style="line-height:40px;" border='0'>
-										<tr>
-											<td colspan="3" align="center" valign="top">
-												<div style="border:0px green solid;height:40px;"></div>
-											</td>
-										</tr>
-										<tr>
-											<td align="right" valign="center">列印碼：</td>
-											<td align="center" valign="center"><input type="password" name="Token" /><input type="hidden" name="Type" value="Query"/><input type="hidden" name="ID" value="<?php echo $ID; ?>"/><input type="hidden" name="Date" value="<?php echo date("Y-m-d"); ?>"/><input type="hidden" name="QueryType" value="ID"/></td>
-											<td align="left" valign="center"><input type="button" name="Submit1" value="確認" onClick="CheckInput()"/></td>
-										</tr>
-									</table>
-								</form>
-							<p>
-						</td>
-					</tr>
-				</table>
-				
-				<script>
-					Chart.defaults.global.defaultFontSize = 12;
-					// var DATA_COUNT = 7;
-
-					var utils = Samples.utils;
-
-					// utils.srand(110);
-
-					function alternatePointStyles(ctx) {
-						var index = ctx.dataIndex;
-						return index % 2 === 0 ? "circle" : "rect";
-					}
-
-					function makeHalfAsOpaque(ctx) {
-						var c = ctx.dataset.backgroundColor;
-						return utils.transparentize(c);
-					}
-
-					function adjustRadiusBasedOnData(ctx) {
-						var v = ctx.dataset.data[ctx.dataIndex];
-						return v < 5 ? 4
-							: v < 10 ? 5
-							: v < 15 ? 6
-							: v < 20 ? 7
-							: 8;
-					}
-					<?php
-					echo '
-					var data = {
-						labels: ["E（'.(int)$AnswerE.'）","I（'.(int)$AnswerI.'）","S（'.(int)$AnswerS.'）","N（'.(int)$AnswerN.'）","T（'.(int)$AnswerT.'）","F（'.(int)$AnswerF.'）","J（'.(int)$AnswerJ.'）","P（'.(int)$AnswerP.'）"],
-						datasets: [{
-							data: ['.(int)$AnswerE.','.(int)$AnswerI.','.(int)$AnswerS.','.(int)$AnswerN.','.(int)$AnswerT.','.(int)$AnswerF.','.(int)$AnswerJ.','.(int)$AnswerP.'],
-							backgroundColor: Chart.helpers.color("#4dc9f6").alpha(0.2).rgbString(),
-							borderColor: "#4dc9f6",
-						}]
-					};';
-					
-					$stepSize=0;
-					$max=0;
-					
-					if($AnswerE>$max) $max=$AnswerE;
-					if($AnswerI>$max) $max=$AnswerI;
-					if($AnswerS>$max) $max=$AnswerS;
-					if($AnswerN>$max) $max=$AnswerN;
-					if($AnswerT>$max) $max=$AnswerT;
-					if($AnswerF>$max) $max=$AnswerF;
-					if($AnswerJ>$max) $max=$AnswerJ;
-					if($AnswerP>$max) $max=$AnswerP;
-					
-					$stepSize = ceil($max  / 4);
-					$max = $stepSize * 4;
-					?>
-
-					var options = {
-						legend: false,
-						// tooltips: true,
-						elements: {
-							point: {
-								hoverBackgroundColor: makeHalfAsOpaque,
-								radius: adjustRadiusBasedOnData,
-								pointStyle: alternatePointStyles,
-								hoverRadius: 10,
-							}
-						},
-						scale: {
-							display: true,
-							reverse: true,
-							pointLabels: {
-								fontSize: 13,
-								fontStyle: "bold",
-								fontColor: [Chart.helpers.color("#800000").alpha(1).rgbString(),
-											Chart.helpers.color("#800000").alpha(1).rgbString(),
-											Chart.helpers.color("#FF4500").alpha(1).rgbString(),
-											Chart.helpers.color("#FF4500").alpha(1).rgbString(),
-											Chart.helpers.color("#228B22").alpha(1).rgbString(),
-											Chart.helpers.color("#228B22").alpha(1).rgbString(),
-											Chart.helpers.color("#000000").alpha(1).rgbString(),
-											Chart.helpers.color("#000000").alpha(1).rgbString()], 
-							},
-							ticks: {
-								stepSize: <?php echo $stepSize; ?>,
-								min:0,
-								max:<?php echo $max; ?>,
-								fontSize: 12,
-								fontStyle: "bold",
-								fontColor: Chart.helpers.color("#B54FFF").alpha(1).rgbString(),
-							}
-						}
-					};
-
-					var chart = new Chart("chart-0", {
-						type: "radar",
-						data: data,
-						options: options
-					}
-				);
-				</script>
-			</body>
-			
-			
-			<?php
 		}
-		else //無效驗證
-			echo '<meta http-equiv=REFRESH CONTENT=0;url=index.php>';
 	}
-	else
-		echo '<meta http-equiv=REFRESH CONTENT=0;url=index.php>';
 ?>
 
-</body>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>人格分析結果</title>
+	<link rel="stylesheet" type="text/css" href="chart/css/style.css">
+	<script src="chart/js/Chart.min.js"></script>
+	<script src="chart/js/utils.js"></script>
+	<style>
+		body {
+			margin: 0;
+			padding: 20px;
+			font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			line-height: 1.6;
+		}
+		.result-container {
+			max-width: 800px;
+			margin: 0 auto;
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 20px;
+			padding: 40px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+			backdrop-filter: blur(10px);
+			text-align: center;
+		}
+		.result-title {
+			font-size: 2.5rem;
+			color: #154360;
+			margin-bottom: 30px;
+			font-weight: bold;
+		}
+		.user-info {
+			display: flex;
+			justify-content: center;
+			gap: 30px;
+			margin-bottom: 30px;
+			flex-wrap: wrap;
+		}
+		.user-info-item {
+			font-size: 1.2rem;
+			color: #1A5276;
+			font-weight: bold;
+		}
+		.chart-container {
+			background: #fff;
+			border-radius: 15px;
+			padding: 30px;
+			margin: 30px 0;
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+		}
+		.chart-wrapper {
+			position: relative;
+			width: 100%;
+			max-width: 500px;
+			margin: 0 auto;
+		}
+		.query-form {
+			background: rgba(255, 255, 255, 0.9);
+			border-radius: 15px;
+			padding: 30px;
+			margin-top: 30px;
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+		}
+		.form-group {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 15px;
+			flex-wrap: wrap;
+			margin-bottom: 20px;
+		}
+		.form-label {
+			font-size: 1.1rem;
+			color: #333;
+			font-weight: 600;
+		}
+		.form-input {
+			padding: 10px 15px;
+			border: 2px solid #e1e5e9;
+			border-radius: 8px;
+			font-size: 16px;
+			transition: all 0.3s ease;
+			min-width: 200px;
+		}
+		.form-input:focus {
+			outline: none;
+			border-color: #667eea;
+			box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		}
+		.submit-btn {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			padding: 12px 30px;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+		.submit-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+		}
+		.submit-btn:active {
+			transform: translateY(0);
+		}
+		
+		/* 分數展示區域 */
+		.score-display {
+			margin: 40px 0;
+		}
+		.score-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 20px;
+			max-width: 800px;
+			margin: 0 auto;
+		}
+		.score-card {
+			background: white;
+			border-radius: 15px;
+			padding: 25px;
+			text-align: center;
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+			transition: all 0.3s ease;
+			border: 3px solid;
+		}
+		.score-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+		}
+		.score-card.blue {
+			border-color: #3498db;
+		}
+		.score-card.green {
+			border-color: #2ecc71;
+		}
+		.score-card.orange {
+			border-color: #f39c12;
+		}
+		.score-card.purple {
+			border-color: #9b59b6;
+		}
+		.score-title {
+			font-size: 1.1rem;
+			font-weight: bold;
+			color: #2c3e50;
+			margin-bottom: 8px;
+		}
+		.score-type {
+			font-size: 0.95rem;
+			color: #7f8c8d;
+			margin-bottom: 10px;
+		}
+		.score-value {
+			font-size: 2.5rem;
+			font-weight: bold;
+			color: #154360;
+		}
+		.score-card.blue .score-value {
+			color: #3498db;
+		}
+		.score-card.green .score-value {
+			color: #2ecc71;
+		}
+		.score-card.orange .score-value {
+			color: #f39c12;
+		}
+		.score-card.purple .score-value {
+			color: #9b59b6;
+		}
+		
+		/* 分隔線 */
+		.divider {
+			width: 80%;
+			height: 2px;
+			background: linear-gradient(to right, transparent, #bdc3c7, transparent);
+			margin: 30px auto;
+			position: relative;
+		}
+		.divider::before {
+			content: '';
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			width: 8px;
+			height: 8px;
+			background: #667eea;
+			border-radius: 50%;
+		}
+		
+		@media (max-width: 768px) {
+			body {
+				padding: 10px;
+			}
+			.result-container {
+				padding: 20px;
+			}
+			.user-info {
+				flex-direction: column;
+				gap: 15px;
+			}
+			.form-group {
+				flex-direction: column;
+				align-items: stretch;
+			}
+			.result-title {
+				font-size: 2rem;
+			}
+			.score-grid {
+				grid-template-columns: repeat(2, 1fr);
+				gap: 15px;
+			}
+			.score-card {
+				padding: 20px;
+			}
+			.score-value {
+				font-size: 2rem;
+			}
+		}
+	</style>
+</head>
 
+<body class="result-body">
+
+	<script src="assets/main.js"></script>
+			
+			<div class="result-container">
+				<div class="result-title">測驗結果</div>
+				
+				<div class="user-info">
+					<div class="user-info-item">姓名：<?= $Name ?></div>
+					<div class="user-info-item">身份證：<?= replace_symbol_text($ID,'＊',3,2) ?></div>
+				</div>
+				
+				<div class="chart-container">
+					<div class="chart-wrapper">
+						<canvas id="chart-0" width="450" height="400"></canvas>
+					</div>
+				</div>
+				
+				<!-- 人格維度分數展示 -->
+				<div class="score-display">
+					<div class="score-grid">
+						<div class="score-card blue">
+							<div class="score-title">精力支配</div>
+							<div class="score-type"><?= ($AnswerE > $AnswerI) ? '外向 (E)' : (($AnswerE == $AnswerI) ? '外向/內向 (E/I)' : '內向 (I)') ?></div>
+							<div class="score-value"><?= ($AnswerE > $AnswerI) ? $AnswerE : (($AnswerE == $AnswerI) ? $AnswerE.'/'.$AnswerI : $AnswerI) ?></div>
+						</div>
+						<div class="score-card green">
+							<div class="score-title">認識世界</div>
+							<div class="score-type"><?= ($AnswerS > $AnswerN) ? '實感 (S)' : (($AnswerS == $AnswerN) ? '實感/直覺 (S/N)' : '直覺 (N)') ?></div>
+							<div class="score-value"><?= ($AnswerS > $AnswerN) ? $AnswerS : (($AnswerS == $AnswerN) ? $AnswerS.'/'.$AnswerN : $AnswerN) ?></div>
+						</div>
+						<div class="score-card orange">
+							<div class="score-title">判斷事物</div>
+							<div class="score-type"><?= ($AnswerT > $AnswerF) ? '思維 (T)' : (($AnswerT == $AnswerF) ? '思維/情感 (T/F)' : '情感 (F)') ?></div>
+							<div class="score-value"><?= ($AnswerT > $AnswerF) ? $AnswerT : (($AnswerT == $AnswerF) ? $AnswerT.'/'.$AnswerF : $AnswerF) ?></div>
+						</div>
+						<div class="score-card purple">
+							<div class="score-title">生活態度</div>
+							<div class="score-type"><?= ($AnswerJ > $AnswerP) ? '判斷 (J)' : (($AnswerJ == $AnswerP) ? '判斷/知覺 (J/P)' : '知覺 (P)') ?></div>
+							<div class="score-value"><?= ($AnswerJ > $AnswerP) ? $AnswerJ : (($AnswerJ == $AnswerP) ? $AnswerJ.'/'.$AnswerP : $AnswerP) ?></div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- 分隔線 -->
+				<div class="divider"></div>
+				
+				<div class="query-form">
+					<h3 style="color: #154360; margin-bottom: 20px;">查看詳細報告</h3>
+					<form id="queryForm" method="post" action="connect.php">
+						<div class="form-group">
+							<label class="form-label" for="token">列印碼：</label>
+							<input type="password" id="token" name="Token" class="form-input" placeholder="請輸入列印碼" required>
+							<button type="button" class="submit-btn" onclick="submitForm()">查看報告</button>
+						</div>
+						<input type="hidden" name="Type" value="Query">
+						<input type="hidden" name="ID" value="<?= $ID ?>">
+						<input type="hidden" name="Date" value="<?= date('Y-m-d') ?>">
+						<input type="hidden" name="QueryType" value="ID">
+					</form>
+				</div>
+			</div>
+			
+			<script>
+				Chart.defaults.global.defaultFontSize = 14;
+
+				var utils = Samples.utils;
+
+				function alternatePointStyles(ctx) {
+					var index = ctx.dataIndex;
+					return index % 2 === 0 ? "circle" : "rect";
+				}
+
+				function makeHalfAsOpaque(ctx) {
+					var c = ctx.dataset.backgroundColor;
+					return utils.transparentize(c);
+				}
+
+				function adjustRadiusBasedOnData(ctx) {
+					var v = ctx.dataset.data[ctx.dataIndex];
+					return v < 5 ? 4 : v < 10 ? 5 : v < 15 ? 6 : v < 20 ? 7 : 8;
+				}
+				
+				var data = {
+					labels: ["E（<?= $AnswerE ?>）","I（<?= $AnswerI ?>）","S（<?= $AnswerS ?>）","N（<?= $AnswerN ?>）","T（<?= $AnswerT ?>）","F（<?= $AnswerF ?>）","J（<?= $AnswerJ ?>）","P（<?= $AnswerP ?>）"],
+					datasets: [{
+						data: [<?= $AnswerE ?>,<?= $AnswerI ?>,<?= $AnswerS ?>,<?= $AnswerN ?>,<?= $AnswerT ?>,<?= $AnswerF ?>,<?= $AnswerJ ?>,<?= $AnswerP ?>],
+						backgroundColor: Chart.helpers.color("#4dc9f6").alpha(0.2).rgbString(),
+						borderColor: "#4dc9f6",
+					}]
+				};
+				
+				<?php
+				$max = max($AnswerE, $AnswerI, $AnswerS, $AnswerN, $AnswerT, $AnswerF, $AnswerJ, $AnswerP);
+				$stepSize = ceil($max / 4);
+				$max = $stepSize * 4;
+				?>
+
+				var options = {
+					legend: false,
+					elements: {
+						point: {
+							hoverBackgroundColor: makeHalfAsOpaque,
+							radius: adjustRadiusBasedOnData,
+							pointStyle: alternatePointStyles,
+							hoverRadius: 10,
+						}
+					},
+					scale: {
+						display: true,
+						reverse: true,
+						pointLabels: {
+							fontSize: 13,
+							fontStyle: "bold",
+							fontColor: [
+								Chart.helpers.color("#800000").alpha(1).rgbString(),
+								Chart.helpers.color("#800000").alpha(1).rgbString(),
+								Chart.helpers.color("#FF4500").alpha(1).rgbString(),
+								Chart.helpers.color("#FF4500").alpha(1).rgbString(),
+								Chart.helpers.color("#228B22").alpha(1).rgbString(),
+								Chart.helpers.color("#228B22").alpha(1).rgbString(),
+								Chart.helpers.color("#000000").alpha(1).rgbString(),
+								Chart.helpers.color("#000000").alpha(1).rgbString()
+							], 
+						},
+						ticks: {
+							stepSize: <?= $stepSize ?>,
+							min: 0,
+							max: <?= $max ?>,
+							fontSize: 12,
+							fontStyle: "bold",
+							fontColor: Chart.helpers.color("#B54FFF").alpha(1).rgbString(),
+						}
+					}
+				};
+
+				var chart = new Chart("chart-0", {
+					type: "radar",
+					data: data,
+					options: options
+				});
+			</script>
+
+</body>
 </html>

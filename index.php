@@ -74,82 +74,138 @@
 	
 </script>
 
-<html>
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-	<link rel="stylesheet" href="css/style.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>人格分析問卷</title>
+	<link rel="stylesheet" href="assets/main.css">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.login-container {
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 20px;
+			padding: 40px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+			backdrop-filter: blur(10px);
+			max-width: 400px;
+			width: 100%;
+			text-align: center;
+		}
+		.login-title {
+			font-size: 2rem;
+			color: #333;
+			margin-bottom: 10px;
+			font-weight: bold;
+		}
+		.login-subtitle {
+			color: #666;
+			margin-bottom: 30px;
+			font-size: 0.9rem;
+		}
+		.form-group {
+			margin-bottom: 20px;
+			text-align: left;
+		}
+		.form-label {
+			display: block;
+			margin-bottom: 5px;
+			color: #333;
+			font-weight: 500;
+		}
+		.form-input {
+			width: 100%;
+			padding: 12px 16px;
+			border: 2px solid #e1e5e9;
+			border-radius: 10px;
+			font-size: 16px;
+			transition: all 0.3s ease;
+			box-sizing: border-box;
+		}
+		.form-input:focus {
+			outline: none;
+			border-color: #667eea;
+			box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		}
+		.login-btn {
+			width: 100%;
+			padding: 14px;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			border-radius: 10px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+			margin-top: 10px;
+		}
+		.login-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+		}
+		.login-btn:active {
+			transform: translateY(0);
+		}
+		.version-info {
+			margin-top: 30px;
+			padding-top: 20px;
+			border-top: 1px solid #e1e5e9;
+			color: #999;
+			font-size: 0.8rem;
+		}
+		.error-message {
+			color: #e74c3c;
+			background: #fdf2f2;
+			padding: 10px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+			font-size: 14px;
+			border: 1px solid #f5c6cb;
+		}
+	</style>
 </head>
 
-<body>
+<body class="login-body">
 
-	<!-- 設定網頁編碼為UTF-8 -->
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<!-- 設定手機的視覺大小 -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-	<table width="100%" height="65%">
-		<tr>
-			<td align="center" valign="center">
-				<form id="form1" name="form1" method="post" action="connect.php">
-					<table width="350" style="line-height:30px;" border='0'>
-							<tr>
-								<td colspan="3" align="center" valign="top">
-									<span style="font-family:DFKai-sb;margin-right:5px;font-size:1cm;">人格分析問卷</span>
-								</td>
-							</tr>
-							<tr>
-								<td colspan="3" align="center" valign="top">
-									<!--<div style="margin: 30px 8px 20px 6px;border-top:1px dotted #C0C0C0;"></div>-->
-									<div id="er-theme" style="border:0px green solid;height:10px;"><p class="line"> </p></div>
-								</td>
-							</tr>
-							<tr>
-								<td colspan="3" align="center" valign="top">
-									<div style="border:0px green solid;height:80px;"></div>
-								</td>
-							</tr>
-							<tr>
-								<td align="right" valign="center">姓名：</td>
-								<td align="center" valign="center"><input type="text" name="Name" autocomplete="off"/></td>
-								<td align="left" valign="center"></td>
-							</tr>
-							<tr>
-								<td align="right" valign="center">身份證號：</td>
-								<td align="center" valign="center"><input style="text-transform: uppercase" type="text" name="ID" autocomplete="off" /></td>
-								<td align="left" valign="center"><input type="hidden" name="Type" value="Login"/></td>
-							</tr>
-							<tr>
-								<td align="right" valign="center">登入碼：</td>
-								<td align="center" valign="center"><input type="password" id="TokenText" name="Token" /></td>
-								<td align="left" valign="center"><input type="button" id="Submit1" name="Submit1" value="登入" onClick="CheckInput()"/></td>
-							</tr>
-							<tr>
-								<td colspan="3" align="center" valign="bottom">
-									<hr size="1px" align="center" width="100%">
-								</td>
-							</tr>
-							<tr>
-								<td colspan="3" align="center" valign="top">
-									<font color="#805300" size="1" ><b>Ver.1909a18.009.6</b></font>
-								</td>
-							</tr>
-					</table>
-				</form>
-			</td>
-		</tr>
-	</table>
+	<div class="login-container">
+		<div class="login-title">人格分析問卷</div>
+		<div class="login-subtitle">探索您的內在特質，了解真實的自己</div>
+		
+		<form id="loginForm" method="post" action="connect.php">
+			<div class="form-group">
+				<label class="form-label" for="name">姓名</label>
+				<input type="text" id="name" name="Name" class="form-input" placeholder="請輸入您的姓名" autocomplete="off" required>
+			</div>
+			
+			<div class="form-group">
+				<label class="form-label" for="id">身份證號</label>
+				<input type="text" id="id" name="ID" class="form-input" placeholder="請輸入身份證號" autocomplete="off" required>
+			</div>
+			
+			<div class="form-group">
+				<label class="form-label" for="token">登入碼</label>
+				<input type="password" id="token" name="Token" class="form-input" placeholder="請輸入登入碼" required>
+			</div>
+			
+			<input type="hidden" name="Type" value="Login">
+			<button type="button" class="login-btn" onclick="validateAndSubmit()">開始測驗</button>
+		</form>
+		
+		<div class="version-info">Ver.1909a18.009.6</div>
+	</div>
 	
-	<script>
-		var input = document.getElementById("TokenText");
-		input.addEventListener("keyup", function(event)
-		{
-			if (event.keyCode === 13) 
-			{
-				event.preventDefault();
-				document.getElementById("Submit1").click();
-		  }
-		});
-	</script>
+	<script src="assets/main.js"></script>
 </body>
 
 </html>
