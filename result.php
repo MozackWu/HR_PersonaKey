@@ -206,34 +206,40 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
         }
         .score-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
             margin: 40px auto;
             max-width: 900px;
             padding: 0 20px;
         }
         .score-item {
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px 10px;
             border-radius: 15px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transition: all 0.3s ease;
             position: relative;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .score-item:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
         .score-item h4 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
             font-weight: bold;
+            line-height: 1.2;
         }
         .score-item .score {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 8px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            line-height: 1;
         }
         .score-item.color-blue { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
         .score-item.color-green { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
@@ -290,21 +296,41 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
         @media (max-width: 768px) {
             .report-container { padding: 20px; }
             .score-grid { 
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 15px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
                 margin: 30px auto;
                 padding: 0 10px;
             }
             .score-item {
-                padding: 20px 15px;
+                padding: 15px 8px;
+                min-height: 120px;
             }
             .score-item h4 {
-                font-size: 1.1rem;
+                font-size: 0.9rem;
+                margin-bottom: 5px;
             }
             .score-item .score {
-                font-size: 2.2rem;
+                font-size: 1.8rem;
             }
             .tab-btn { padding: 8px 15px; font-size: 0.9rem; }
+        }
+        @media (max-width: 480px) {
+            .score-grid { 
+                gap: 8px;
+                padding: 0 5px;
+            }
+            .score-item {
+                padding: 12px 5px;
+                min-height: 100px;
+            }
+            .score-item h4 {
+                font-size: 0.8rem;
+                line-height: 1.1;
+            }
+            .score-item .score {
+                font-size: 1.6rem;
+                margin-top: 5px;
+            }
         }
         @media print {
             .report-body { background: white; }
