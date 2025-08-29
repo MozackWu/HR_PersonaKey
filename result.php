@@ -385,10 +385,16 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif !important;
             }
             
-            /* 移除瀏覽器預設的頁首頁尾 */
+            /* 確保色彩準確顯示 */
             * {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
+            }
+            
+            /* 移除可能產生線條的元素 */
+            input, button, select, textarea {
+                border: none !important;
+                outline: none !important;
             }
             
             /* 確保沒有頁首頁尾內容 */
@@ -400,7 +406,7 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
-                padding: 15px !important;
+                padding: 20px !important;
                 margin: 0 !important;
                 min-height: auto !important;
             }
@@ -408,10 +414,11 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             .report-container {
                 max-width: none !important;
                 margin: 0 auto !important;
-                padding: 20px !important;
+                padding: 30px !important;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
                 border-radius: 15px !important;
                 background: white !important;
+                border: none !important;
             }
             
             /* 隱藏不必要元素 */
@@ -447,11 +454,11 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             }
             .tab-btn {
                 display: inline-block !important;
-                padding: 8px 16px !important;
+                padding: 10px 20px !important;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
                 color: white !important;
                 border: none !important;
-                border-radius: 20px !important;
+                border-radius: 25px !important;
                 font-weight: bold !important;
                 font-size: 1rem !important;
                 margin: 0 !important;
@@ -472,26 +479,27 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             }
             .score-item {
                 text-align: center !important;
-                padding: 15px 8px !important;
-                border-radius: 12px !important;
-                box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+                padding: 20px 12px !important;
+                border-radius: 15px !important;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+                border: none !important;
                 transition: none !important;
                 position: relative !important;
-                min-height: 100px !important;
+                min-height: 120px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
             }
             .score-item h4 {
-                font-size: 0.85rem !important;
-                margin-bottom: 6px !important;
+                font-size: 1rem !important;
+                margin-bottom: 8px !important;
                 font-weight: bold !important;
-                line-height: 1.1 !important;
+                line-height: 1.2 !important;
             }
             .score-item .score {
-                font-size: 1.8rem !important;
+                font-size: 2.2rem !important;
                 font-weight: bold !important;
-                margin-top: 6px !important;
+                margin-top: 8px !important;
                 text-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
                 line-height: 1 !important;
             }
@@ -514,13 +522,14 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 color: white !important;
             }
             
-            /* 適合直向的分隔線格式 */
+            /* 恢復網頁版分隔線格式 */
             .score-divider {
                 width: 80% !important;
                 height: 2px !important;
                 background: linear-gradient(to right, transparent, #bdc3c7, transparent) !important;
-                margin: 15px auto !important;
+                margin: 20px auto !important;
                 position: relative !important;
+                border: none !important;
             }
             .score-divider::before {
                 content: '' !important;
@@ -532,6 +541,7 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 height: 8px !important;
                 background: #667eea !important;
                 border-radius: 50% !important;
+                border: none !important;
             }
             
             /* 適合直向的表格格式 */
@@ -603,12 +613,12 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 page-break-inside: avoid !important;
             }
             
-            /* 確保直向內容適合頁面 */
+            /* 確保直向內容適合頁面，接近網頁版尺寸 */
             .tab-content.active {
-                transform: scale(0.9) !important;
+                transform: scale(0.85) !important;
                 transform-origin: top center !important;
-                width: 111% !important;
-                margin-left: -5.5% !important;
+                width: 117.6% !important;
+                margin-left: -8.8% !important;
             }
         }
     </style>
