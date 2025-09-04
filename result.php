@@ -116,7 +116,7 @@ if (!Verify_LoginToken($_SESSION['Token'], $_SESSION['Time'])) {
 
 $handler = new PersonalityResultHandler($link);
 
-// 獲取Session資料
+// 取得Session資料
 $date = $_SESSION['Date'];
 $id = $_SESSION['ID'];
 $queryType = $_SESSION['QueryType'];
@@ -124,7 +124,7 @@ $queryType = $_SESSION['QueryType'];
 // 清除Session
 $handler->clearSession();
 
-// 獲取人格分析資料
+// 取得人格分析資料
 $data = $handler->getPersonalityData($id, $date, $queryType);
 
 if (!$data) {
@@ -389,12 +389,18 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             * {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
+                box-shadow: none !important; /* 移除所有陰影效果 */
+                outline: none !important;
+                text-decoration: none !important;
+                float: none !important;
+                clear: both !important;
             }
             
             /* 移除可能產生線條的元素 */
             input, button, select, textarea {
                 border: none !important;
                 outline: none !important;
+                box-shadow: none !important;
             }
             
             /* 確保沒有頁首頁尾內容 */
@@ -403,7 +409,7 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             }
             
             .report-body { 
-                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+                background: white !important; /* 改為純白背景 */
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
                 padding: 20px !important;
@@ -415,14 +421,16 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 max-width: none !important;
                 margin: 0 auto !important;
                 padding: 30px !important;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-                border-radius: 15px !important;
+                box-shadow: none !important; /* 完全移除陰影 */
+                border-radius: 0 !important; /* 移除圓角 */
                 background: white !important;
                 border: none !important;
             }
             
             /* 隱藏不必要元素 */
-            .pdf-save-btn { display: none !important; }
+            .pdf-save-btn { 
+                display: none !important; 
+            }
             
             /* 只顯示活動的 tab 內容 */
             .tab-content { 
@@ -462,13 +470,13 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 font-weight: bold !important;
                 font-size: 1rem !important;
                 margin: 0 !important;
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+                box-shadow: none !important; /* 移除陰影 */
             }
             .tab-btn:not(.active) {
                 display: none !important;
             }
             
-            /* 適合直向的分數區塊格式 */
+            /* 重點修正：分數卡片格式 */
             .score-grid {
                 display: grid !important;
                 grid-template-columns: repeat(4, 1fr) !important;
@@ -476,60 +484,79 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 margin: 20px auto !important;
                 max-width: 100% !important;
                 padding: 0 !important;
+                background: transparent !important; /* 確保背景透明 */
             }
             .score-item {
                 text-align: center !important;
                 padding: 20px 12px !important;
-                border-radius: 15px !important;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-                border: none !important;
+                border-radius: 10px !important; /* 減少圓角 */
+                box-shadow: none !important; /* 完全移除陰影 */
+                border: 2px solid rgba(255,255,255,0.3) !important; /* 添加邊框替代陰影 */
                 transition: none !important;
                 position: relative !important;
                 min-height: 120px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
+                overflow: hidden !important; /* 防止內容溢出 */
             }
             .score-item h4 {
                 font-size: 1rem !important;
                 margin-bottom: 8px !important;
                 font-weight: bold !important;
                 line-height: 1.2 !important;
+                z-index: 10 !important; /* 確保文字在最上層 */
+                position: relative !important;
             }
             .score-item .score {
                 font-size: 2.2rem !important;
                 font-weight: bold !important;
                 margin-top: 8px !important;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+                text-shadow: none !important; /* 移除文字陰影 */
                 line-height: 1 !important;
+                z-index: 10 !important; /* 確保文字在最上層 */
+                position: relative !important;
             }
             
             /* 維持原有顏色漸層 */
             .score-item.color-blue { 
                 background: linear-gradient(135deg, #3498db, #2980b9) !important; 
                 color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
             .score-item.color-green { 
                 background: linear-gradient(135deg, #2ecc71, #27ae60) !important; 
                 color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
             .score-item.color-orange { 
                 background: linear-gradient(135deg, #f39c12, #e67e22) !important; 
                 color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
             .score-item.color-purple { 
                 background: linear-gradient(135deg, #9b59b6, #8e44ad) !important; 
                 color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
             
-            /* 恢復網頁版分隔線格式 */
+            /* 修正分隔線格式 - Chrome 專用 */
             .score-divider {
                 width: 80% !important;
                 height: 2px !important;
-                background: linear-gradient(to right, transparent, #bdc3c7, transparent) !important;
+                background: #bdc3c7 !important; /* 簡化為純色 */
+                background-image: none !important;
                 margin: 20px auto !important;
                 position: relative !important;
                 border: none !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                filter: none !important;
+                -webkit-filter: none !important;
             }
             .score-divider::before {
                 content: '' !important;
@@ -537,28 +564,46 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 left: 50% !important;
                 top: 50% !important;
                 transform: translate(-50%, -50%) !important;
+                -webkit-transform: translate(-50%, -50%) !important;
                 width: 8px !important;
                 height: 8px !important;
                 background: #667eea !important;
+                background-color: #667eea !important;
+                background-image: none !important;
                 border-radius: 50% !important;
+                -webkit-border-radius: 50% !important;
                 border: none !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
             }
             
-            /* 適合直向的表格格式 */
+            /* 表格格式優化 - Chrome 專用 */
             .info-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 margin: 15px 0 !important;
                 font-size: 0.8rem !important;
                 line-height: 1.3 !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                filter: none !important;
+                -webkit-filter: none !important;
             }
             .info-table th {
                 background: #34495e !important;
+                background-color: #34495e !important;
+                background-image: none !important;
                 color: white !important;
                 padding: 8px !important;
                 text-align: left !important;
                 width: 100px !important;
                 font-size: 0.85rem !important;
+                border: none !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .info-table td {
                 padding: 10px !important;
@@ -566,17 +611,36 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 font-size: 0.75rem !important;
                 line-height: 1.4 !important;
                 vertical-align: top !important;
+                border-left: none !important;
+                border-right: none !important;
+                border-top: none !important;
+                background: white !important;
+                background-color: white !important;
+                background-image: none !important;
             }
             
-            /* 適合直向的職業建議區塊格式 */
+            /* 職業建議區塊格式 - Chrome 專用 */
             .career-section {
                 background: #e8f4fd !important;
+                background-color: #e8f4fd !important;
+                background-image: none !important;
                 padding: 12px !important;
-                border-radius: 8px !important;
+                border-radius: 6px !important;
+                -webkit-border-radius: 6px !important;
                 border-left: 4px solid #3498db !important;
                 margin: 15px 0 !important;
                 font-size: 0.8rem !important;
                 line-height: 1.4 !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                border-top: none !important;
+                border-right: none !important;
+                border-bottom: none !important;
+                filter: none !important;
+                -webkit-filter: none !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .career-list {
                 color: #2980b9 !important;
@@ -585,7 +649,7 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
                 line-height: 1.4 !important;
             }
             
-            /* 適合直向的詳細說明區塊格式 */
+            /* 詳細說明區塊格式 - Chrome 專用 */
             div[style*="margin: 30px 0"] {
                 margin: 15px 0 !important;
             }
@@ -594,16 +658,29 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             }
             div[style*="background: #f8f9fa"] {
                 background: #f8f9fa !important;
+                background-color: #f8f9fa !important;
+                background-image: none !important;
                 padding: 12px !important;
                 border-radius: 6px !important;
+                -webkit-border-radius: 6px !important;
                 font-size: 0.75rem !important;
                 line-height: 1.4 !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                border: none !important;
+                filter: none !important;
+                -webkit-filter: none !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             h3 {
                 color: #2c3e50 !important;
                 margin-bottom: 8px !important;
                 font-size: 1rem !important;
                 font-weight: bold !important;
+                text-shadow: none !important;
+                -webkit-text-shadow: none !important;
             }
             
             /* 防止分頁 */
@@ -611,14 +688,27 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             .info-table,
             .career-section {
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
-            /* 確保直向內容適合頁面，接近網頁版尺寸 */
+            /* 確保直向內容適合頁面 */
             .tab-content.active {
-                transform: scale(0.85) !important;
-                transform-origin: top center !important;
-                width: 117.6% !important;
-                margin-left: -8.8% !important;
+                transform: none !important;
+                -webkit-transform: none !important;
+                width: 100% !important;
+                margin-left: 0 !important;
+            }
+            
+            /* Chrome 額外修正：移除所有可能的偽元素效果 */
+            *::before, *::after {
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                text-shadow: none !important;
+                -webkit-text-shadow: none !important;
+                filter: none !important;
+                -webkit-filter: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
             }
         }
     </style>
@@ -743,7 +833,7 @@ $analysisResults = $handler->getAnalysisResults($personalityTypes);
             
             isPrintingInProgress = true;
             
-            // 獲取當前活動的 tab
+            // 取得當前活動的 tab
             const activeTab = document.querySelector('.tab-content.active');
             const allTabs = document.querySelectorAll('.tab-content');
             const personalityTabs = document.querySelector('.personality-tabs');
