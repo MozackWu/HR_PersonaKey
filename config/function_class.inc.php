@@ -6,10 +6,11 @@
 		if((time() - $Time) < 3600)
 		{
 			// return $Verify_Token;
-			$Token1 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
-			$Token2 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
+			$Token1 = base64_encode(md5(base64_encode('95430016') . "HR System" . $Time ));
+			$Token2 = base64_encode(md5(base64_encode('00023817') . "HR System" . $Time ));
+			$Token3 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
 			
-			if($Verify_Token === $Token1 || $Verify_Token === $Token2)
+			if($Verify_Token === $Token1 || $Verify_Token === $Token2 || $Verify_Token === $Token3)
 				return True;
 			
 		}
@@ -19,12 +20,15 @@
 
 	function GetSecurCode($Verify_Token,$Time)
 	{
-		$Token1 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
-		$Token2 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
+		$Token1 = base64_encode(md5(base64_encode('95430016') . "HR System" . $Time ));
+		$Token2 = base64_encode(md5(base64_encode('00023817') . "HR System" . $Time ));
+		$Token3 = base64_encode(md5(base64_encode('00127691') . "HR System" . $Time ));
 
 		if($Verify_Token === $Token1 )
-			return '00127691';
+			return '95430016';
 		else if($Verify_Token === $Token2 )
+			return '00023817';
+		else if($Verify_Token === $Token3 )
 			return '00127691';
 		else 
 			return '-';

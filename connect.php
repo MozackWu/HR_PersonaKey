@@ -3,7 +3,7 @@ session_start();
 
 // 安全性提升：添加 CSRF 防護和輸入驗證
 class AuthenticationHandler {
-    private static $validTokens = ['00127691']; // 建議：移到配置檔案或資料庫
+    private static $validTokens = ['00127691', '95430016', '00023817']; // 建議：移到配置檔案或資料庫
     
     public static function validateInput($data) {
         return trim(htmlspecialchars($data, ENT_QUOTES, 'UTF-8'));
