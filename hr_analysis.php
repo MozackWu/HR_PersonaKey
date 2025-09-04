@@ -1,32 +1,86 @@
 <?php
-// config/database.php - 資料庫連線設定
-function getDatabaseConnection() {
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "hr_database";
+session_start();
+
+// 防止瀏覽器快取表單資料和頁面
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Mon, 01 Jan 1990 00:00:00 GMT");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+
+// 引用配置檔案
+require_once __DIR__ . '/config/database.php';
+
+// 處理登出（必須在任何輸出之前）
+if (isset($_POST['action']) && $_POST['action'] === 'logout') {
+    unset($_SESSION['hr_analysis_authenticated']);
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// 僅引入認證處理類別定義（避免執行連線邏輯）
+class AuthenticationHandler {
+    private static $validTokens = ['00127691', '95430016', '00023817'];
     
-    $conn = new mysqli($servername, $username, $password, $dbname);
-    $conn->set_charset("utf8");
-    
-    if ($conn->connect_error) {
-        die("連線失敗: " . $conn->connect_error);
+    public static function validateInput($data) {
+        return trim(htmlspecialchars($data, ENT_QUOTES, 'UTF-8'));
     }
     
-    return $conn;
+    public static function isValidToken($token) {
+        return in_array($token, self::$validTokens);
+    }
+}
+
+// 解析人格類型的函數
+function parsePersonalityType($note) {
+    $personalities = [];
+    
+    // 移除空白並轉為大寫
+    $note = strtoupper(trim($note));
+    
+    // 解析格式如: I-S-(T,F)-(J,P)
+    if (preg_match('/^([EI])-([SN]|\([SN],[SN]\))-([TF]|\([TF],[TF]\))-([JP]|\([JP],[JP]\))/', $note, $matches)) {
+        // 解析每個維度的可能值
+        $e_i = ($matches[1] === 'E') ? ['E'] : ['I'];
+        $s_n = parseOptions($matches[2]);
+        $t_f = parseOptions($matches[3]);
+        $j_p = parseOptions($matches[4]);
+        
+        // 生成所有組合
+        foreach ($e_i as $ei) {
+            foreach ($s_n as $sn) {
+                foreach ($t_f as $tf) {
+                    foreach ($j_p as $jp) {
+                        $personalities[] = $ei . $sn . $tf . $jp;
+                    }
+                }
+            }
+        }
+    }
+    // 處理簡單格式如: E-S-T-J
+    elseif (preg_match('/^([EI])-([SN])-([TF])-([JP])/', $note, $matches)) {
+        $personalities[] = $matches[1] . $matches[2] . $matches[3] . $matches[4];
+    }
+    
+    return $personalities;
+}
+
+// 解析括號內的選項
+function parseOptions($option) {
+    if (strpos($option, '(') !== false) {
+        // 如 (T,F) 或 (J,P)
+        preg_match('/\(([^,]+),([^)]+)\)/', $option, $matches);
+        return [$matches[1], $matches[2]];
+    } else {
+        // 單一選項如 T 或 F
+        return [$option];
+    }
 }
 
 // functions/data_filter.php - 數據過濾函數
 function getValidPersonalityData($conn) {
+    // 先取得所有符合條件的記錄
     $sql = "
-    SELECT 
-        CASE 
-            WHEN NOTE LIKE 'E-%' THEN CONCAT('E', SUBSTRING(NOTE, 3, 3))
-            WHEN NOTE LIKE 'I-%' THEN CONCAT('I', SUBSTRING(NOTE, 3, 3))
-            ELSE 'UNKNOWN'
-        END as personality_type,
-        COUNT(*) as count,
-        pa.COMP, pa.TIME
+    SELECT NOTE
     FROM personalit_analysis pa
     WHERE pa.ID NOT LIKE 'A123456789'
         AND pa.ID NOT LIKE 'A%123%' 
@@ -37,13 +91,40 @@ function getValidPersonalityData($conn) {
         AND LENGTH(pa.ID) = 10
         AND pa.ID REGEXP '^[A-Z][0-9]{9}$'
         AND pa.NOTE != ''
-    GROUP BY personality_type
-    HAVING personality_type != 'UNKNOWN'
-    ORDER BY count DESC
     ";
     
     $result = $conn->query($sql);
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $records = $result->fetch_all(MYSQLI_ASSOC);
+    
+    // 統計所有人格類型
+    $personalityCount = [];
+    
+    foreach ($records as $record) {
+        $personalities = parsePersonalityType($record['NOTE']);
+        foreach ($personalities as $personality) {
+            if (!isset($personalityCount[$personality])) {
+                $personalityCount[$personality] = 0;
+            }
+            // 如果一個人有多種人格，每種人格按比例計算
+            $personalityCount[$personality] += (1 / count($personalities));
+        }
+    }
+    
+    // 轉換為需要的格式並排序
+    $result_data = [];
+    foreach ($personalityCount as $personality => $count) {
+        $result_data[] = [
+            'personality_type' => $personality,
+            'count' => round($count, 1)
+        ];
+    }
+    
+    // 按數量排序
+    usort($result_data, function($a, $b) {
+        return $b['count'] <=> $a['count'];
+    });
+    
+    return $result_data;
 }
 
 function getDataValidityStats($conn) {
@@ -124,34 +205,57 @@ function getDimensionAnalysis($conn) {
     return $result->fetch_assoc();
 }
 
-// auth.php - 驗證碼驗證 (使用現有Session管理)
-function generateCaptcha() {
-    $characters = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    $captcha = '';
-    for ($i = 0; $i < 5; $i++) {
-        $captcha .= $characters[rand(0, strlen($characters) - 1)];
-    }
-    $_SESSION['captcha'] = $captcha;
-    return $captcha;
-}
-
-function verifyCaptcha($input) {
-    return isset($_SESSION['captcha']) && strtoupper($input) === $_SESSION['captcha'];
-}
-
 // 處理登入驗證
 $showDashboard = false;
 $error = '';
+$currentTime = time();
 
+// 處理 POST 登入請求
 if (($_POST['action'] ?? '') === 'login') {
-    if (verifyCaptcha($_POST['captcha'] ?? '')) {
-        $_SESSION['authenticated'] = true;
-        $showDashboard = true;
+    $token = AuthenticationHandler::validateInput($_POST['token'] ?? '');
+    $timestamp = $_POST['timestamp'] ?? '';
+    
+    // 檢查時間戳是否在合理範圍內（30秒內）
+    if ($timestamp && abs($currentTime - intval($timestamp)) <= 30) {
+        if (AuthenticationHandler::isValidToken($token)) {
+            // 登入成功，生成一次性令牌並重定向
+            $viewToken = md5(uniqid(rand(), true));
+            $_SESSION['view_token'] = $viewToken;
+            $_SESSION['view_time'] = $currentTime;
+            
+            header("Location: " . $_SERVER['PHP_SELF'] . "?view=" . $viewToken);
+            exit;
+        } else {
+            $error = '登入碼錯誤，請檢查後重新輸入';
+        }
     } else {
-        $error = '驗證碼錯誤，請重新輸入';
+        $error = '登入請求已過期，請重新輸入';
     }
-} elseif ($_SESSION['authenticated'] ?? false) {
-    $showDashboard = true;
+}
+
+// 檢查 GET 請求的查看令牌
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['view'])) {
+    $viewToken = $_GET['view'];
+    $sessionToken = $_SESSION['view_token'] ?? '';
+    $viewTime = $_SESSION['view_time'] ?? 0;
+    
+    // 檢查令牌是否有效且未過期（查看一次後失效）
+    if ($viewToken === $sessionToken && (time() - $viewTime) <= 60) {
+        $showDashboard = true;
+        // 清除一次性令牌，確保只能查看一次
+        unset($_SESSION['view_token']);
+        unset($_SESSION['view_time']);
+    } else {
+        // 令牌無效或過期，清除並重定向到登入頁
+        session_destroy();
+        session_start();
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['view'])) {
+    // 直接 GET 訪問，清除所有狀態
+    session_destroy();
+    session_start();
 }
 
 // 如果已驗證，獲取數據 (使用現有資料庫連線)
@@ -162,21 +266,40 @@ $dimensionData = [];
 
 if ($showDashboard) {
     try {
-        // 使用現有的資料庫連線
-        $personalityData = getValidPersonalityData($link);
-        $validityStats = getDataValidityStats($link);
-        $monthlyTrend = getMonthlyTrendData($link);
-        $dimensionData = getDimensionAnalysis($link);
+        // 使用 config/database.php 的連線函數
+        $conn = DatabaseConfig::getConnection();
         
-        // 關閉資料庫連線 (使用現有方法)
-        DatabaseConfig::closeConnection($link);
+        // 測試連線
+        if ($conn->connect_error) {
+            throw new Exception("資料庫連線失敗: " . $conn->connect_error);
+        }
+        
+        // 檢查資料表是否存在
+        $tableCheckSql = "SHOW TABLES LIKE 'personalit_analysis'";
+        $tableResult = $conn->query($tableCheckSql);
+        if ($tableResult->num_rows == 0) {
+            throw new Exception("資料表 'personalit_analysis' 不存在");
+        }
+        
+        $personalityData = getValidPersonalityData($conn);
+        $validityStats = getDataValidityStats($conn);
+        $monthlyTrend = getMonthlyTrendData($conn);
+        $dimensionData = getDimensionAnalysis($conn);
+        
+        // 偵錯：檢查是否有資料
+        if (empty($personalityData)) {
+            $error = "查無有效的人格測驗資料，請檢查資料表內容";
+        }
+        
+        // 關閉資料庫連線
+        DatabaseConfig::closeConnection($conn);
     } catch (Exception $e) {
         error_log("數據獲取失敗: " . $e->getMessage());
-        $error = "數據載入失敗，請稍後再試";
+        $error = "數據載入失敗: " . $e->getMessage();
     }
 }
 
-$captcha = generateCaptcha();
+// 移除驗證碼生成
 ?>
 
 <!DOCTYPE html>
@@ -253,29 +376,6 @@ $captcha = generateCaptcha();
             border-color: #3498db;
         }
 
-        .captcha-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .captcha-display {
-            background: #2c3e50;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 3px;
-            font-family: 'Courier New', monospace;
-            min-width: 120px;
-            text-align: center;
-        }
-
-        .captcha-input {
-            flex: 1;
-        }
-
         .login-btn {
             width: 100%;
             background: linear-gradient(45deg, #3498db, #2c3e50);
@@ -301,16 +401,6 @@ $captcha = generateCaptcha();
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 0.9rem;
-        }
-
-        .refresh-captcha {
-            background: none;
-            border: none;
-            color: #3498db;
-            cursor: pointer;
-            font-size: 0.9rem;
-            text-decoration: underline;
-            margin-top: 5px;
         }
 
         /* 原有的儀表板樣式保持不變 */
@@ -344,6 +434,7 @@ $captcha = generateCaptcha();
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.9rem;
+            z-index: 2;
         }
 
         .logout-btn:hover {
@@ -475,12 +566,9 @@ $captcha = generateCaptcha();
             <?php endif; ?>
             
             <div class="form-group">
-                <label>請輸入驗證碼以進入系統</label>
-                <div class="captcha-container">
-                    <div class="captcha-display"><?php echo $captcha; ?></div>
-                    <input type="text" name="captcha" class="captcha-input" placeholder="輸入驗證碼" required>
-                </div>
-                <button type="button" class="refresh-captcha" onclick="location.reload()">重新產生驗證碼</button>
+                <label>請輸入登入碼以進入系統</label>
+                <input type="password" name="token" placeholder="請輸入登入碼" required autocomplete="off">
+                <input type="hidden" name="timestamp" value="<?php echo $currentTime; ?>">
             </div>
             
             <input type="hidden" name="action" value="login">
@@ -658,7 +746,12 @@ $captcha = generateCaptcha();
 
         function logout() {
             if (confirm('確定要登出系統嗎？')) {
-                window.location.href = '?logout=1';
+                // 使用 POST 請求來處理登出
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = '<input type="hidden" name="action" value="logout">';
+                document.body.appendChild(form);
+                form.submit();
             }
         }
 
@@ -670,23 +763,3 @@ $captcha = generateCaptcha();
     <?php endif; ?>
 </body>
 </html>
-
-<?php
-// 處理登出
-if (isset($_POST['action']) && $_POST['action'] === 'logout') {
-    // 清除Session
-    $_SESSION = array();
-    session_destroy();
-    
-    // 清除相關Cookie (模仿index.php的做法)
-    if (isset($_COOKIE['Token'])) setcookie("Token", "", time()-3600);
-    if (isset($_COOKIE['ID'])) setcookie("ID", "", time()-3600);
-    if (isset($_COOKIE['Name'])) setcookie("Name", "", time()-3600);
-    if (isset($_COOKIE['Time'])) setcookie("Time", "", time()-3600);
-    
-    // 返回JSON響應
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-?>
